@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Integration WebApp</title>
+    <title>Wesley Chatbot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,8 +13,8 @@
             color: #333;
         }
 
-        .container {
-            max-width: 800px;
+        .chat-container {
+            max-width: 600px;
             margin: 50px auto;
             background: #fff;
             padding: 20px;
@@ -22,29 +22,57 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
+        .chat-header {
             text-align: center;
             color: #555;
+            margin-bottom: 20px;
         }
 
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
+        .chat-box {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            background: #f4f4f4;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-message {
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #007bff;
+            color: #fff;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: #e6e6e6;
+            color: #333;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
         }
 
         input[type="text"] {
-            width: 98%;
+            flex: 1;
             padding: 10px;
-            margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
         }
 
         button {
-            display: block;
-            width: 100%;
             padding: 10px;
             background: #007bff;
             color: #fff;
@@ -59,18 +87,6 @@
             background: #0056b3;
         }
 
-        textarea {
-            width: 98%;
-            height: 300px;
-            padding: 10px;
-            margin-top: 10px;
-            background: #f4f4f4;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            resize: none;
-        }
-
         .loading {
             display: none;
             text-align: center;
@@ -83,13 +99,27 @@
         }
     </style>
     <script>
-        async function callAPI() {
+        async function callAPI(initial = false) {
             const apiKey = "AIzaSyCEo7ILnowFmTGglVOOcjB0QJvYjWuM71A";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-            const prompt = document.getElementById('promptInput').value;
+            const chatBox = document.getElementById('chatBox');
+            const input = document.getElementById('promptInput');
             const loading = document.getElementById('loading');
-            const responseOutput = document.getElementById('responseOutput');
+            const userMessage = input.value.trim();
+
+            const prompt = initial ? "You are Digital Coding Specialist include python ,Answer in thai,Thai boy, Your name is Wesley\n introduce yourself" : "Answer in thai Language\n" + userMessage;
+
+            if (!initial && !userMessage) return;
+
+            if (!initial) {
+                const userBubble = document.createElement('div');
+                userBubble.className = 'chat-message user-message';
+                userBubble.textContent = userMessage;
+                chatBox.appendChild(userBubble);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                input.value = '';
+            }
 
             const requestData = {
                 contents: [{
@@ -99,7 +129,6 @@
 
             try {
                 loading.style.display = 'block';
-                responseOutput.value = '';
 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -115,28 +144,40 @@
 
                 const data = await response.json();
                 const contentText = data.candidates[0]?.content?.parts[0]?.text || "No content found";
-                responseOutput.value = contentText;
+
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'chat-message ai-message';
+                aiBubble.textContent = contentText;
+                chatBox.appendChild(aiBubble);
+                chatBox.scrollTop = chatBox.scrollHeight;
             } catch (error) {
-                responseOutput.value = `Error: ${error.message}`;
+                const errorBubble = document.createElement('div');
+                errorBubble.className = 'chat-message ai-message';
+                errorBubble.textContent = `Error: ${error.message}`;
+                chatBox.appendChild(errorBubble);
+                chatBox.scrollTop = chatBox.scrollHeight;
             } finally {
                 loading.style.display = 'none';
             }
         }
+
+        window.onload = () => {
+            callAPI(true);
+        };
     </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Wesley AI Demo</h1>
-        <center><h3>Gemini Model</h3></center>
-        <label for="promptInput">Enter your prompt:</label>
-        <input type="text" id="promptInput" placeholder="Type your prompt here...">
-        <button onclick="callAPI()">Ask AI</button>
+    <div class="chat-container">
+        <h1 class="chat-header">Wesley Chatbot</h1>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-section">
+            <input type="text" id="promptInput" placeholder="Type your message here...">
+            <button onclick="callAPI()">Send</button>
+        </div>
         <div class="loading" id="loading">
             <img src="https://i.gifer.com/YCZH.gif" alt="Loading...">
             <p>Loading...</p>
         </div>
-        <label for="responseOutput">Response:</label>
-        <textarea id="responseOutput" readonly></textarea>
     </div>
 </body>
 </html>

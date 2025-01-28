@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wesley Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #555;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            width: 98%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        textarea {
+            width: 98%;
+            height: 300px;
+            padding: 10px;
+            margin-top: 10px;
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading img {
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+    <script>
+        async function callAPI() {
+            const apiKey = "AIzaSyCEo7ILnowFmTGglVOOcjB0QJvYjWuM71A";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+            const prompt = document.getElementById('promptInput').value;
+            const loading = document.getElementById('loading');
+            const responseOutput = document.getElementById('responseOutput');
+
+            const requestData = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }]
+            };
+
+            try {
+                loading.style.display = 'block';
+                responseOutput.value = '';
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const contentText = data.candidates[0]?.content?.parts[0]?.text || "No content found";
+                responseOutput.value = contentText;
+            } catch (error) {
+                responseOutput.value = `Error: ${error.message}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Wesley AI Demo</h1>
+        <center><h3>Gemini Model</h3></center>
+        <label for="promptInput">Enter your prompt:</label>
+        <input type="text" id="promptInput" placeholder="Type your prompt here...">
+        <button onclick="callAPI()">Ask AI</button>
+        <div class="loading" id="loading">
+            <img src="https://i.gifer.com/YCZH.gif" alt="Loading...">
+            <p>Loading...</p>
+        </div>
+        <label for="responseOutput">Response:</label>
+        <textarea id="responseOutput" readonly></textarea>
+    </div>
+</body>
+</html>
